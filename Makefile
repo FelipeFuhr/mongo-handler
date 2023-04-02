@@ -4,7 +4,8 @@ help:
 	@echo "Commands:"
 	@echo "- build						: builds images ."
 	@echo "- kube						: runs kubernetes ."	
-	@echo "- test-bash					: runs job with bash for tests ."
+	@echo "- test-insert				: runs job that tests insertion of elements into the database ."
+	@echo "- test-find-by-id			: runs job that tests search of elements from id ."
 	@echo "- test-code					: runs code tests ."
 	@echo "- check						: checks code and container ."
 	@echo "- check-format				: check if package files don't have code smells ."
@@ -30,6 +31,27 @@ kube:
 test-insert:
 	kubectl apply -f ./k8s/job/test-insert.yaml
 
-.PHONY = test-bash
+.PHONY = test-find-id
+test-find-by-id:
+	kubectl apply -f ./k8s/job/test-find-by-id.yaml
+
+.PHONY = test-code
+test-code:
+	echo TODO
+
+.PHONY = check
+check:
+	go fmt ./...
+	go vet ./...
+
+.PHONY = check-format
+check-format:
+	echo TODO
+
+.PHONY = test-code
+docs:
+	echo TODO
+
+.PHONY = clean
 clean:
 	kubectl delete all --all -n mongo --force --grace-period 0

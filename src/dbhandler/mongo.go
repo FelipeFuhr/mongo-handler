@@ -2,15 +2,15 @@
 package dbhandler
 
 import (
-	"net/http"
-	"encoding/json"
-	"go.mongodb.org/mongo-driver/mongo"
-    "go.mongodb.org/mongo-driver/mongo/options"
-    "go.mongodb.org/mongo-driver/mongo/readpref"
-	"io"
 	"context"
-	"time"
+	"encoding/json"
 	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"io"
+	"net/http"
+	"time"
 )
 
 type DBHandler interface {
@@ -24,19 +24,22 @@ type DBHandler interface {
 }
 
 type MongoHandler struct {
-	client *mongo.Client // mongo client
-	dbname string // database name
-	collname string // database collection
+	client   *mongo.Client // mongo client
+	dbname   string        // database name
+	collname string        // database collection
 }
 
 type Product struct {
-	Id string
-	Name string
+	Id    string
+	Name  string
 	Price string
-	Date string
-	Tags string
+	Date  string
+	Tags  string
 }
 
+type FindPayload struct {
+	Id string
+}
 
 func NewMongoHandler(dbname string, collname string) *MongoHandler {
 	return &MongoHandler{dbname: dbname, collname: collname}
@@ -52,10 +55,20 @@ func (p *Product) ToJSON(w io.Writer) error {
 	return e.Encode(p)
 }
 
+func (fp *FindPayload) FromJSON(r io.Reader) error {
+	e := json.NewDecoder(r)
+	return e.Decode(fp)
+}
+
+func (fp *FindPayload) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(fp)
+}
+
 // Connect tries to estabilish a client with mongodb by using connection string
-// connstr. It tries to estabilish connection for another r times, if it is not 
-// successful on its first attempt. For each try, it has tconn seconds to connect. 
-// For each time the connection attempt fails, it sleeps for a cooldown of tcdown 
+// connstr. It tries to estabilish connection for another r times, if it is not
+// successful on its first attempt. For each try, it has tconn seconds to connect.
+// For each time the connection attempt fails, it sleeps for a cooldown of tcdown
 // seconds .
 func (dbh *MongoHandler) Connect(connstr string, r int, tconn int, tcdown int) error {
 	var err error
@@ -68,11 +81,11 @@ func (dbh *MongoHandler) Connect(connstr string, r int, tconn int, tcdown int) e
 		if err != nil {
 			log.Errorf("Could not connect to database using connection string '%s' (%d/%d).", connstr, i, r)
 			log.Infof("Retrying connection in %d seconds .", tcdown)
-			time.Sleep(time.Duration(tcdown)*time.Second)
+			time.Sleep(time.Duration(tcdown) * time.Second)
 		} else if err := dbh.client.Ping(ctx, readpref.Primary()); err != nil {
 			log.Errorf("Could not connect to database using connection string '%s' (%d/%d).", connstr, i, r)
 			log.Infof("Retrying connection in '%d' seconds .", tconn)
-			time.Sleep(time.Duration(tcdown)*time.Second)
+			time.Sleep(time.Duration(tcdown) * time.Second)
 		} else {
 			log.Info("Connected to database .")
 			return nil
@@ -81,7 +94,6 @@ func (dbh *MongoHandler) Connect(connstr string, r int, tconn int, tcdown int) e
 	log.Error("Reached maximum number of attemps connecting to database .")
 	return err
 }
-
 
 // Connects with a db, with a heartbeat and reconnect. Every dbhb secons, a heartbeat is sent
 // If the db does not respond, retries connection.

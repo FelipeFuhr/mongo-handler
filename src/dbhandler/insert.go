@@ -2,16 +2,15 @@
 package dbhandler
 
 import (
-	log "github.com/sirupsen/logrus"
 	"context"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
-
 
 func (dbh *MongoHandler) InsertOne(product *Product) error {
 	log.Debug("Entered InsertOne function .")
 	log.Debug("Inserting product into database ...")
-	
+
 	// Setup for InsertOne
 	collection := dbh.client.Database(dbh.dbname).Collection(dbh.collname)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

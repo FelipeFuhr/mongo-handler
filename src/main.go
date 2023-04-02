@@ -2,33 +2,33 @@
 package main
 
 import (
-	"fmt"
-	"os"
 	"context"
-	"time"
 	"flag"
-	"os/signal"
-	"net/http"
-	"mongo-handler/probes"
+	"fmt"
+	log "github.com/sirupsen/logrus"
 	"mongo-handler/api"
 	"mongo-handler/dbhandler"
-	log "github.com/sirupsen/logrus"
+	"mongo-handler/probes"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
 )
 
 // API variables
-var host = "0.0.0.0" // application connection host
-var port = 9000 // application connection port
-var rto = 10 // maximum time to read a request
-var wto = 15 // maximum time allowed for write a response
-var ito = 360 // maximum time idle
-var dbhb = 10 // database heartbeat
+var host = "0.0.0.0"     // application connection host
+var port = 9000          // application connection port
+var rto = 10             // maximum time to read a request
+var wto = 15             // maximum time allowed for write a response
+var ito = 360            // maximum time idle
+var dbhb = 10            // database heartbeat
 var dbname = "testingdb" // database name
-var collname = "colldb" // collection name
+var collname = "colldb"  // collection name
 
 var connstr = "localhost:27017" // database connection host
-var r = 5 // number of retries permitted when connecting to database
-var tconn = 10 // time allowed for each connection attempt
-var tcdown = 10 // time between connection attempts
+var r = 5                       // number of retries permitted when connecting to database
+var tconn = 10                  // time allowed for each connection attempt
+var tcdown = 10                 // time between connection attempts
 
 var rh *probes.ReadinessHandler
 var dbh *dbhandler.MongoHandler
@@ -36,17 +36,16 @@ var dbh *dbhandler.MongoHandler
 // Application variables
 var grace = 30 // grace period for application shutdown measured in seconds
 
-
-// Starts application flow, by aggregating some of basic functions required to 
-// configure it. Currently, it changes the structure of logs and 
+// Starts application flow, by aggregating some of basic functions required to
+// configure it. Currently, it changes the structure of logs and
 // specifies flags/arguments for the application .
 func init() {
 	// Logging
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.InfoLevel)
-	
+
 	// Arguments
-	flag.Usage = func() {	// Redefines usage, which will show when user calls for help .
+	flag.Usage = func() { // Redefines usage, which will show when user calls for help .
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 		flag.PrintDefaults()
 	}
@@ -65,12 +64,11 @@ func init() {
 	flag.IntVar(&tcdown, "time-cooldown", tcdown, "Time (in seconds) between tries when trying to connect to database .")
 	flag.IntVar(&grace, "grace-period", grace, "Grace period (in seconds) when shutting down application .")
 	flag.Parse() // Parses flags
-	if *help { // Shows usage if user calls for help
+	if *help {   // Shows usage if user calls for help
 		flag.Usage()
 		os.Exit(0)
 	}
 }
-	
 
 // Application flow. It includes setup, connection to database,
 // instantiation of mux with handlers for interacting with db and
@@ -119,8 +117,8 @@ func startServer() http.Server {
 	// Create Server
 	ba := fmt.Sprintf("%s:%d", host, port)
 	s := http.Server{
-		Addr:         ba,     			 				// bind address
-		Handler:      sm,                				// set the default handler
+		Addr:         ba,                               // bind address
+		Handler:      sm,                               // set the default handler
 		ReadTimeout:  time.Duration(rto) * time.Second, // max time to read request from the client
 		WriteTimeout: time.Duration(wto) * time.Second, // max time to write response to the client
 		IdleTimeout:  time.Duration(ito) * time.Second, // max time for connections using TCP Keep-Alive

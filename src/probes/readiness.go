@@ -10,15 +10,14 @@ type ReadinessHandler struct {
 	Ready bool
 }
 
-
 func NewReadinessHandler() *ReadinessHandler {
 	return &ReadinessHandler{false}
 }
 
 // Readiness probe .
 func (p *ReadinessHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	log.Debug("Readiness Probe was called .",)
-	if p.Ready == true{
+	log.Debug("Readiness Probe was called .")
+	if p.Ready == true {
 		rw.WriteHeader(http.StatusOK)
 	} else {
 		http.Error(rw, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)

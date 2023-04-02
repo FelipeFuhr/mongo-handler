@@ -9,7 +9,6 @@ import (
 type LivenessHandler struct {
 }
 
-
 func NewLivenessHandler() *LivenessHandler {
 	return &LivenessHandler{}
 }
